@@ -16,6 +16,10 @@ class Item:
     <BLANKLINE>
     >>> i.rows()
     [[1, 2, 3, 4], [1, 2, 4, 5]]
+    >>> i.search([1, 2, 3])
+    [[1, 2, 3, 4]]
+    >>> i.search([1, 2])
+    [[1, 2, 3, 4], [1, 2, 4, 5]]
     """
     def __init__(self, value=None):
         self.value = value
@@ -48,6 +52,17 @@ class Item:
         for k,v in self.children.items():
             cr = v.rows()
             for r in cr:
+                rows.append([self.value] + r)
+        return rows
+
+    def search(self, path):
+        if path is None or len(path) == 0:
+            return self.value
+        rows = []
+        start, rest = path[0],path[1:]
+        for k,v in self.children.items():
+            sr = v.search(rest)
+            for r in sr:
                 rows.append([self.value] + r)
         return rows
 
