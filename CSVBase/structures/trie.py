@@ -57,14 +57,26 @@ class Item:
 
     def search(self, path):
         if path is None or len(path) == 0:
-            return self.value
+            if len(self.children) > 0:
+                rows = []
+                for k,v in self.children.items():
+                    sr = v.search(None)
+                    for r in sr:
+                        rows.append([self.value] + r)
+                return rows
+
+            return [[self.value]]
         rows = []
         start, rest = path[0],path[1:]
-        for k,v in self.children.items():
-            sr = v.search(rest)
-            for r in sr:
-                rows.append([self.value] + r)
-        return rows
+        if self.value == start: #we're on the path
+            for k,v in self.children.items():
+                sr = v.search(rest)
+                if sr is None:
+                    continue
+                for r in sr:
+                    rows.append([self.value] + r)
+            return rows
+        return None
 
 
     def __str__(self):
