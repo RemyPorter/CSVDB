@@ -14,6 +14,8 @@ class Item:
       4
        5
     <BLANKLINE>
+    >>> i.rows()
+    [[1, 2, 3, 4], [1, 2, 4, 5]]
     """
     def __init__(self, value=None):
         self.value = value
@@ -38,6 +40,17 @@ class Item:
         out.write(str(text))
         for k,v in self.children.items():
             v.__build_str__(out, level+1)
+
+    def rows(self):
+        if len(self.children) == 0:
+            return [[self.value]]
+        rows = []
+        for k,v in self.children.items():
+            cr = v.rows()
+            for r in cr:
+                rows.append([self.value] + r)
+        return rows
+
 
     def __str__(self):
         out = StringIO()
