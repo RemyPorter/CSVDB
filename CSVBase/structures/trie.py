@@ -1,4 +1,5 @@
 from collections import defaultdict
+from .utility import *
 from io import StringIO
 class Item:
     """
@@ -20,6 +21,9 @@ class Item:
     [[1, 2, 3, 4]]
     >>> i.search([1, 2])
     [[1, 2, 3, 4], [1, 2, 4, 5]]
+    >>> i.remove([1, 2, 3])
+    >>> i.rows()
+    [[1, 2, 4, 5]]
     """
     def __init__(self, value=None):
         self.value = value
@@ -28,8 +32,7 @@ class Item:
     def append(self, children):
         if children is None or len(children) == 0:
             return
-        start = children[0]
-        rest = children[1:]
+        start,rest = split(children)
         if not start in self.children:
             root = Item(start)
             self.children[root.value] = root
@@ -55,29 +58,36 @@ class Item:
                 rows.append([self.value] + r)
         return rows
 
-    def search(self, path):
-        if path is None or len(path) == 0:
-            if len(self.children) > 0:
-                rows = []
-                for k,v in self.children.items():
-                    sr = v.search(None)
-                    for r in sr:
-                        rows.append([self.value] + r)
-                return rows
+    def __search_row(self, path):
+        rows = []
+        for k,v in self.children.items():
+            sr = v.search(path)
+            if sr is None:
+                continue
+            for r in sr:
+                rows.append([self.value] + r)
+        return rows
 
+    def search(self, path):
+        if empty_path(path):
+            if len(self.children) > 0:
+                return self.__search_row(None)
             return [[self.value]]
         rows = []
-        start, rest = path[0],path[1:]
+        start, rest = split(path)
         if self.value == start: #we're on the path
-            for k,v in self.children.items():
-                sr = v.search(rest)
-                if sr is None:
-                    continue
-                for r in sr:
-                    rows.append([self.value] + r)
-            return rows
+            return self.__search_row(rest)
         return None
 
+    def remove(self, path):
+        if empty_path(path):
+            return
+        start,rest = split(path)
+        if self.value == start and rest[0] in self.children:
+            if len(rest) > 1:
+                self.children[rest[0]].remove(rest)
+            else:
+                del self.children[rest[0]]
 
     def __str__(self):
         out = StringIO()
