@@ -13,7 +13,7 @@ def bucket_message(bucket, bus):
     >>> bus.publish(None, update)
     [1, 2, 3] [3, 4, 5]
     """
-    ops = [("create", "row"), ("read", "query_row"), ("update", "query_row", "data"), ("delete", "query_row")]
+    ops = [("create", "row"), ("update", "query_row", "data"), ("delete", "query_row")]
     for op in ops:
         bucketop = "{0}_{1}".format(bucket.name, op[0])
         def make_callback(op):
