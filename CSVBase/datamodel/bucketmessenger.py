@@ -1,13 +1,14 @@
+from .structures.utility import format_op
 def bucket_message(bucket, bus):
     """
     Bind a bucket to the message bus.
-    >>> from .bus import InternalBus
-    >>> from .message import Message
+    >>> from ..messaging.bus import InternalBus
+    >>> from ..messaging.message import Message
     >>> create = Message("dummy_create", row=[1,2,3])
     >>> update = Message("dummy_update", query_row=[1,2,3], data=[3,4,5])
     >>> bus = InternalBus()
     >>> bucket = __dummybucket()
-    >>> bucket_message(bucket, bus)
+    >>> _ = bucket_message(bucket, bus)
     >>> bus.publish(None, create)
     [1, 2, 3]
     >>> bus.publish(None, update)
@@ -15,7 +16,7 @@ def bucket_message(bucket, bus):
     """
     ops = [("create", "row"), ("update", "query_row", "data"), ("delete", "query_row")]
     for op in ops:
-        bucketop = "{0}_{1}".format(bucket.name, op[0])
+        bucketop = format_op(bucket.name, op[0])
         def make_callback(op):
             def callback(message):
                 opname,paramnames = op[0],op[1:]

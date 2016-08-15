@@ -4,3 +4,6 @@ def split(l):
 
 def empty_path(path):
     return path is None or len(path) == 0
+
+def format_op(target, operation):
+    return "{0}_{1}".format(target, operation)
