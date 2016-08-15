@@ -21,8 +21,8 @@ class InternalBus:
     def publish(self, sender, message, timeout=10):
         fs = [self.__executor.submit(s, message) for s in self.subscriptions[message.operation]]
         for f in as_completed(fs, timeout):
-            if f.exception():
-                raise f.exception()
+            if f.exception() and hasattr(sender, "fail"):
+                sender.fail(f.exception())
             elif hasattr(sender, "notify"):
                 sender.notify(f.result())
 
