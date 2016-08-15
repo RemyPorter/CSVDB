@@ -1,4 +1,5 @@
 from .structures.utility import format_op
+from ..commands import BUCKET_COMMANDS
 def bucket_message(bucket, bus):
     """
     Bind a bucket to the message bus.
@@ -14,7 +15,7 @@ def bucket_message(bucket, bus):
     >>> bus.publish(None, update)
     [1, 2, 3] [3, 4, 5]
     """
-    ops = [("create", "row"), ("update", "query_row", "data"), ("delete", "query_row")]
+    ops = BUCKET_COMMANDS
     for op in ops:
         bucketop = format_op(bucket.name, op[0])
         def make_callback(op):
