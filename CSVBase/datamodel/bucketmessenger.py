@@ -28,6 +28,7 @@ def bucket_message(bucket, bus):
                     getattr(bucket, opname)(oldval, newval)
             return callback
         bus.subscribe(bucketop, make_callback(op))
+    return bucket
 
 class __dummybucket:
     def __init__(self):
