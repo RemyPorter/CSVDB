@@ -1,5 +1,5 @@
 from .structures.utility import format_op
-from ..commands import BUCKET_COMMANDS
+from ..message_types import BUCKET_COMMANDS
 def bucket_message(bucket, bus):
     """
     Bind a bucket to the message bus.

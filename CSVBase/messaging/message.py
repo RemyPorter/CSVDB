@@ -1,4 +1,4 @@
-from ..commands import *
+from ..message_types import *
 from ..datamodel.structures.utility import *
 class Message:
     """A simple class to hold data as a message.
