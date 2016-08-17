@@ -21,7 +21,7 @@ class Message:
         self.data[key] = value
 
 
-_actual_commands = merge_dicts_of_lists(BUCKET_COMMANDS,SYSTEM_COMMANDS)
+_actual_commands = ALL_TYPES
 def build_message(target, operation, *args):
     """
     Helper method for constructing messages based on param
