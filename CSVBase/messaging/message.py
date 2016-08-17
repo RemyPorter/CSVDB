@@ -20,6 +20,10 @@ class Message:
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def __str__(self):
+        fmt = "{0}:{1}"
+        return fmt.format(self.operation, str(self.data))
+
 
 _actual_commands = ALL_TYPES
 def build_message(target, operation, data):

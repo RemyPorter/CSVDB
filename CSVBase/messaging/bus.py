@@ -7,19 +7,25 @@ class InternalBus:
     >>> b = InternalBus()
     >>> ds0 = __DummySubscriber(b)
     >>> ds1 = __DummySubscriber(b)
+    >>> as0 = __AlwaysSubscriber(b)
     >>> dp = __DummyPublisher()
     >>> dp.send(b)
+    Got always
     dummy
     dummy
+    Success!
     Success!
     Success!
     """
     def __init__(self):
         self.subscriptions = defaultdict(set)
+        self.always = set()
         self.__executor = ThreadPoolExecutor()
 
     def publish(self, sender, message, timeout=10):
-        fs = [self.__executor.submit(s, message) for s in self.subscriptions[message.operation]]
+        all_subscriptions = self.subscriptions[message.operation] | \
+            self.always
+        fs = [self.__executor.submit(s, message) for s in all_subscriptions]
         for f in as_completed(fs, timeout):
             if f.exception() and hasattr(sender, "fail"):
                 sender.fail(message, f.exception())
@@ -31,7 +37,10 @@ class InternalBus:
 
     def unsubscribe(self, subscriber):
         for k,v in self.subscriptions.items():
-            v.remove(subscriber);
+            v.remove(subscriber)
+
+    def subscribe_all(self, subscriber):
+        self.always.add(subscriber)
 
 class __DummySubscriber:
     def __init__(self, bus):
@@ -48,9 +57,18 @@ class __DummyPublisher:
     def send(self, bus):
         bus.publish(self, Message("dummy", value="dummy"))
 
-    def notify(self, result):
+    def notify(self, message, result):
         if result == True:
             print("Success!")
+
+class __AlwaysSubscriber:
+    def __init__(self, bus):
+        bus.subscribe_all(self)
+        assert(self in bus.always)
+
+    def __call__(self, message):
+        print("Got always")
+        return True
 
 if __name__ == '__main__':
     import doctest
