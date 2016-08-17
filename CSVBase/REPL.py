@@ -29,11 +29,11 @@ class WiredReplClient:
                 self.buffer += " " + resp
                 self.linecount += 1
 
-    def notify(self, result):
-        print(result)
+    def notify(self, message, result):
+        print(message.operation + " complete.")
 
-    def fail(self, exception):
-        print(exception)
+    def fail(self, message, exception):
+        print(message, exception)
 
 def main():
     db = Database()

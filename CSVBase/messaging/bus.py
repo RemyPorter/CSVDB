@@ -22,9 +22,9 @@ class InternalBus:
         fs = [self.__executor.submit(s, message) for s in self.subscriptions[message.operation]]
         for f in as_completed(fs, timeout):
             if f.exception() and hasattr(sender, "fail"):
-                sender.fail(f.exception())
+                sender.fail(message, f.exception())
             elif hasattr(sender, "notify"):
-                sender.notify(f.result())
+                sender.notify(message, f.result())
 
     def subscribe(self, operation, subscriber):
         self.subscriptions[operation].add(subscriber)

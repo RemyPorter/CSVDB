@@ -29,17 +29,17 @@ class BucketInterface:
 
     def create_bucket(self, name):
         if name in self.buckets.keys():
-            raise DuplicateBucketError()
+            raise DuplicateBucketError("Bucket already exists.")
         self.buckets[name] = bucket_message(Bucket(name), self._bus)
 
     def drop_bucket(self, name):
         del self.buckets[name]
 
     def _create_message(self, message):
-        self.create_bucket(message["name"])
+        self.create_bucket(message["bucket"])
 
     def _drop_message(self, message):
-        self.drop_bucket(message["name"])
+        self.drop_bucket(message["bucket"])
 
 if __name__ == '__main__':
     import doctest

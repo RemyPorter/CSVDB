@@ -2,7 +2,7 @@ from .commands import *
 from .row import *
 from ..message_types import *
 from ..datamodel.structures.utility import format_op
-from ..messaging.message import Message
+from ..messaging.message import Message, build_message
 
 def parse(command_string):
     return STATEMENT.parseString(command_string)
@@ -15,17 +15,14 @@ def compile(parsed):
         return compile_ddl(parsed)
 
 def compile_dml(parsed):
-    op = parsed["operation"]
-    del parsed["operation"]
     bucket = parsed["bucket"]
-    m = Message(format_op(bucket, op), **parsed)
+    op = parsed["operation"]
+    m = build_message(bucket, operation, parsed)
     return m
 
 def compile_ddl(parsed):
     op = parsed["operation"]
-    del parsed["operation"]
-    bucket = parsed["bucket"]
-    m = Message(format_op("system", op), **parsed)
+    m = build_message("system", op, parsed)
     return m
 
 def execute(client, database, string):

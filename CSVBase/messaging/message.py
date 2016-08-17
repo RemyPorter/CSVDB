@@ -22,7 +22,7 @@ class Message:
 
 
 _actual_commands = ALL_TYPES
-def build_message(target, operation, *args):
+def build_message(target, operation, data):
     """
     Helper method for constructing messages based on param
     definition lists, driven by our basic syntax.
@@ -41,9 +41,8 @@ def build_message(target, operation, *args):
     op = format_op(target, operation)
     params = _actual_commands[operation]
     m = Message(op)
-    assert(len(params) == len(args))
-    for p,v in zip(params, args):
-        m[p] = v
+    for k,v in data.items():
+        m[k] = v
     return m
 
 if __name__ == '__main__':
