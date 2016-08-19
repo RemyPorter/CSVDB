@@ -1,6 +1,8 @@
 from concurrent.futures import *
+from threading import Thread
+import time
 from collections import defaultdict
-from .message import Message
+from .message import Message, build_message
 class InternalBus:
     """
     A simple, asynchronous message bus for passing messages through the application.
@@ -21,6 +23,7 @@ class InternalBus:
         self.subscriptions = defaultdict(set)
         self.always = set()
         self.__executor = ThreadPoolExecutor()
+        self.clock = Clock(self)
 
     def publish(self, sender, message, timeout=10):
         all_subscriptions = self.subscriptions[message.operation] | \
@@ -46,34 +49,51 @@ class InternalBus:
     def subscribe_all(self, subscriber):
         self.always.add(subscriber)
 
-class __DummySubscriber:
+class Clock:
     def __init__(self, bus):
-        bus.subscribe("dummy", self)
+        self.bus = bus
+        self.ticks = time.time()
+        self.thread = Thread(group=None, target=self, name="clock",
+            daemon=True)
+        self.thread.start()
 
-    def __call__(self, message):
-        print(message["value"])
-        return True
-
-class __DummyPublisher:
-    def __init__(self):
-        pass
-
-    def send(self, bus):
-        bus.publish(self, Message("dummy", value="dummy"))
-
-    def notify(self, message, result):
-        if result == True:
-            print("Success!")
-
-class __AlwaysSubscriber:
-    def __init__(self, bus):
-        bus.subscribe_all(self)
-        assert(self in bus.always)
-
-    def __call__(self, message):
-        print("Got always")
-        return True
+    def __call__(self):
+        while(True):
+            curTime = time.time()
+            diff = curTime - self.ticks
+            self.ticks = curTime
+            m = build_message("system", "tick", {time:self.ticks,
+                diff:diff})
+            self.bus.publish(self, m)
+            time.sleep(100)
 
 if __name__ == '__main__':
+    class __DummySubscriber:
+        def __init__(self, bus):
+            bus.subscribe("dummy", self)
+
+        def __call__(self, message):
+            print(message["value"])
+            return True
+
+    class __DummyPublisher:
+        def __init__(self):
+            pass
+
+        def send(self, bus):
+            bus.publish(self, Message("dummy", value="dummy"))
+
+        def notify(self, message, result):
+            if result == True:
+                print("Success!")
+
+    class __AlwaysSubscriber:
+        def __init__(self, bus):
+            bus.subscribe_all(self)
+            assert(self in bus.always)
+
+        def __call__(self, message):
+            print("Got always")
+            return True
     import doctest
     doctest.testmod()

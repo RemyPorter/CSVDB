@@ -18,7 +18,8 @@ class OpCounter:
     >>> oc.create()
     Test_flush:{}
     """
-    def __init__(self, bucket, bus, threshold, refractory=1000):
+    def __init__(self, bucket, bus, threshold, frequency=10000,
+        refractory=1000):
         self.bucket = bucket
         self.name = bucket.name
         bucket_message(self, bus)
@@ -26,18 +27,28 @@ class OpCounter:
         self.threshold = threshold
         self.refraction = refractory
         self.last_flush = time.time()
+        self.frequency = frequency
         self.bus = bus
         self.retries = 0
+        bus.subscribe("system_tick", getattr(self, "handle_tick"))
+
+    def handle_tick(self, message):
+        if message["time"] > self.last_flush + self.frequency \
+            and self.op_count > 0:
+            self.__do_flush()
 
     def __should_flush(self):
         return self.op_count > self.threshold and \
             time.time() > self.last_flush + self.refraction
 
+    def __do_flush(self):
+         m = build_message(self.bucket.name, "flush", dict())
+        self.bus.publish(self, m)
+
     def __handle(self):
         self.op_count += 1
         if self.__should_flush():
-            m = build_message(self.bucket.name, "flush", dict())
-            self.bus.publish(self, m)
+            self.__do_flush()
 
     def notify(self, message, result):
         self.last_flush = time.time()

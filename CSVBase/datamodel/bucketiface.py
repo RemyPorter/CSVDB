@@ -21,6 +21,7 @@ class BucketInterface:
     """
     def __init__(self, bus):
         self.buckets = dict()
+        self.bucket_storage = dict()
         bus.subscribe("system_create_bucket",
             getattr(self, "_create_message"))
         bus.subscribe("system_drop_bucket",
