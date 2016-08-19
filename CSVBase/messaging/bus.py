@@ -32,6 +32,10 @@ class InternalBus:
             elif hasattr(sender, "notify"):
                 sender.notify(message, f.result())
 
+    def big_red_button(self, sender, error):
+        m = Message("system_emergency", source=sender, error=error)
+        self.publish(sender, message)
+
     def subscribe(self, operation, subscriber):
         self.subscriptions[operation].add(subscriber)
 

@@ -6,10 +6,14 @@ class CommitLog:
         self.handle = open(path, "a")
         self.bus = bus
         bus.subscribe_all(self)
+        bus.subscribe("system_flush_complete", getattr(self, "postflush"))
+
+    def postflush(self, message):
+        pass
 
     def __call__(self, message):
         try:
             self.handle.write(str(message) + "\n")
             self.handle.flush()
-        except e:
-            m = Message("system_emergency", error=e)
+        except Exception as e:
+            self.bus.big_red_button(self, e)

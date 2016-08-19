@@ -43,7 +43,6 @@ def build_message(target, operation, data):
     [1, 5, 6]
     """
     op = format_op(target, operation)
-    params = _actual_commands[operation]
     m = Message(op)
     for k,v in data.items():
         m[k] = v

@@ -40,6 +40,9 @@ class Bucket:
     def delete(self, query_row):
         self._data.remove(query_row)
 
+    def reset(self):
+        self._data = Item(name)
+
 class BucketKeyLengthError(Exception):
     pass
 
