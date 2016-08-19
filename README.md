@@ -12,7 +12,7 @@ You can run it in Python3. Note the dependencies, in requirements.txt.
 python -m CSVBase.REPL
 ```
 
-Currently supported commands, follow. Note that *in the REPL*, all commands must end with a ";". In all commands, each CSV list must end with a "!". Quoted fields are accepted. Type "quit" alone to exit the REPL.
+Currently supported commands, follow. Note that *in the REPL*, all commands must end with a ";". Quoted fields are accepted, and if you want to use a keyword inside of your data, you MUST quote the field. Type "quit" alone to exit the REPL.
 
 ## DDL
 ###Create Bucket
@@ -36,15 +36,15 @@ For example:
 
 ```
 UPDATE foo
-SET 5,4,3,2,1!
-WHERE 5,4!
+SET 5,4,3,2,1
+WHERE 5,4
 ```
 
 This command will find *all* rows that start with "5,4", delete them, and create a single new row "5,4,3,2,1". This is done for efficiency in data access.
 
 ### Create Row
 ```
-CREATE ROW IN <bucket> <csv list>!
+CREATE ROW IN <bucket> <csv list>
 ```
 
 Inserts a row into the bucket. If `KEY COLS` was set, the row must contain at *least* that number of columns.
@@ -52,8 +52,8 @@ Inserts a row into the bucket. If `KEY COLS` was set, the row must contain at *l
 ### Update Row
 ```
 UPDATE <bucket>
-SET ROW <csv new data list>!
-WHERE <csv old data list>!
+SET ROW <csv new data list>
+WHERE <csv old data list>
 ```
 
 Updates in CSVBase are actually DELETE and CREATE operations. This is something I'm kind of lifting from Cassandra's design (INSERTs and UPDATEs and DELETEs are actually all UPDATEs in Cassandra), but twisting for comedy purposes. And yes, I think this is funny.
@@ -61,7 +61,7 @@ Updates in CSVBase are actually DELETE and CREATE operations. This is something 
 ### Delete Row
 ```
 DELETE FROM <bucket>
-WHERE <csv data list>!
+WHERE <csv data list>
 ```
 
 Deletes any row that matches the query row. Again, this is evaluated in a L->R order, meaning that commands like: `DELETE FROM foo WHERE 5!` will delete any row starting with 5.
