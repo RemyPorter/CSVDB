@@ -1,28 +1,11 @@
 """
 Defines the grammar for basic commands.
->>> cr = test_create
->>> parsed = STATEMENT.parseString(cr)
->>> parsed["bucket"]
-'foo'
->>> parsed["row"]
-(['1', '2', '3', 'this should work, right?'], {})
->>> parsed = STATEMENT.parseString(test_update)
->>> parsed["query_row"]
-(['1', '2'], {})
->>> parsed = STATEMENT.parseString(test_delete)
->>> parsed["query_row"]
-(['1', '2', '4'], {})
->>> parsed = STATEMENT.parseString(test_buck_create)
->>> parsed["bucket"]
-'foo'
->>> parsed = STATEMENT.parseString(test_buck_opt_create)
->>> parsed["bucket"]
-'foo'
->>> parsed["keysize"]
-3
->>> parsed = STATEMENT.parseString(test_drop)
->>> parsed["bucket"]
-'foo'
+>>> output = STATEMENT.runTests(test_commands, printResults=False)
+>>> output[0]
+True
+
+TODO: add more of the test content to this,
+but it's just terious to test.
 """
 
 from pyparsing import *
@@ -38,44 +21,47 @@ def set_op(op_name):
         return toks
     return fn
 
-CREATE_ROW = Suppress("CREATE ROW IN").setParseAction(set_op("create")) + \
+CREATE, ROW, IN, UPDATE, SET, DELETE, WHERE, KEY, COLS, WITH, CREATE, BUCKET, DROP, AND, FROM = (
+    map(CaselessKeyword, """
+    CREATE ROW IN UPDATE SET DELETE WHERE KEY COLS WITH CREATE BUCKET DROP AND FROM
+    """.split())
+    )
+
+CREATE_ROW = Suppress(CREATE + ROW + IN).setParseAction(set_op("create")) + \
     bucket_name("bucket") + \
     row("row")
-UPDATE_ROW = Suppress("UPDATE").setParseAction(set_op("update")) + \
+UPDATE_ROW = Suppress(UPDATE).setParseAction(set_op("update")) + \
     bucket_name("bucket") + \
-    Suppress("SET ROW") + row("data") + \
-    Suppress("WHERE") + row("query_row")
-DELETE_ROW = Suppress("DELETE FROM").setParseAction(set_op("delete")) + \
+    Suppress(SET + ROW) + row("data") + \
+    Suppress(WHERE) + row("query_row")
+DELETE_ROW = Suppress(DELETE + FROM).setParseAction(set_op("delete")) + \
     bucket_name("bucket") + \
-    Suppress("WHERE") + row("query_row")
+    Suppress(WHERE) + row("query_row")
 
-KEY_EXPR = Suppress("KEY COLS") + \
+KEY_EXPR = Suppress(KEY + COLS) + \
     Word(nums)("keysize").setParseAction(_to_int)
 BUCKET_OPTS = (KEY_EXPR)
-BUCKET_WITH_CLAUSE = Suppress("WITH") + BUCKET_OPTS + \
-    ZeroOrMore(Suppress("AND") + BUCKET_OPTS)
+BUCKET_WITH_CLAUSE = Suppress(WITH) + BUCKET_OPTS + \
+    ZeroOrMore(Suppress(AND) + BUCKET_OPTS)
 
-CREATE_BUCKET = Suppress("CREATE BUCKET").setParseAction(set_op("create_bucket")) + \
+CREATE_BUCKET = Suppress(CREATE + BUCKET).setParseAction(set_op("create_bucket")) + \
     bucket_name("bucket") + \
     Optional(BUCKET_WITH_CLAUSE)
-DROP_BUCKET = Suppress("DROP BUCKET") + bucket_name("bucket")
+DROP_BUCKET = Suppress(DROP + BUCKET).setParseAction(set_op("drop_bucket")) + \
+    bucket_name("bucket")
 
 DDL = (CREATE_BUCKET | DROP_BUCKET)
 DML = (CREATE_ROW | UPDATE_ROW | DELETE_ROW)
 STATEMENT = (DML | DDL)
 
 if __name__ == '__main__':
-    test_create = """CREATE ROW IN foo
-        1, "2", 3, "this should work, right?"!
+    test_commands = """
+    CREATE ROW IN foo 1, "2", 3, "this should work, right?"
+    UPDATE foo SET ROW 1, 2, 4 WHERE 1, 2
+    DELETE FROM foo WHERE 1, 2, 4
+    CREATE BUCKET foo
+    CREATE BUCKET foo WITH KEY COLS 3
+    DROP BUCKET foo
     """
-    test_update = """UPDATE foo
-        SET ROW 1, 2, 4!
-        WHERE 1, 2!"""
-    test_delete = """DELETE FROM foo
-        WHERE 1, 2, 4!"""
-    test_buck_create = """CREATE BUCKET foo"""
-    test_buck_opt_create = """CREATE BUCKET foo
-        WITH KEY COLS 3"""
-    test_drop = """DROP BUCKET foo"""
     import doctest
     doctest.testmod()

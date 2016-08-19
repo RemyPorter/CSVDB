@@ -6,21 +6,16 @@ handling my unique cases.
 (['Some, quoted, fields'], {})
 >>> row.parseString(test_row)
 (['One', 'Two', 'Three, values'], {})
->>> row.parseString('1!')
+>>> row.parseString('1')
 (['1'], {})
 """
 from pyparsing import *
-delimiter = Suppress(",")
-bareField = CharsNotIn(",\n\"!")
-pairedQuotes = Suppress("''").setParseAction(lambda x: '"')
-quotedField = Suppress('"') + (CharsNotIn('"') | pairedQuotes) + Suppress('"')
-field = (quotedField | bareField)
-field.setParseAction(lambda s: s[0].strip())
-rowDelimiter = Suppress("!")
-row = field + ZeroOrMore(delimiter + field) + rowDelimiter
+quotedField = QuotedString('"').setParseAction(lambda t: t[0].replace("''", '"'))
+list_item = quotedField | Word(printables, excludeChars=',')
+row = delimitedList(list_item)
 
 if __name__ == '__main__':
     import doctest
     test_quote = "\"Some, quoted, fields\""
-    test_row = 'One, Two, "Three, values"!'
+    test_row = 'One, Two, "Three, values"'
     doctest.testmod()
